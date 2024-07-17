@@ -2,11 +2,11 @@ using DomainLogic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System.Configuration;
-using System.Text.Json;
+using System.Text.Json.Serialization;
+using DomainLogic.Services;
+using Newtonsoft.Json.Converters;
 using Telegram.Bot;
 using Telegram.Bot.CommandRouting;
-using WebHookApp;
 using WebHookApp.AuthenticationTelegram;
 using WebHookApp.AuthorizationPolicies.User;
 
@@ -35,7 +35,8 @@ builder.Services
     .AddScoped<TelegramBotController, TelegramController>()
     .AddScoped<IAuthorizationChatHandler, AuthorizationChatHandler>();
 
-builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(b => b.SerializerSettings.Converters.Add(new StringEnumConverter()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -44,13 +45,14 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services
     .AddTransient<TelegramDomainService>()
+    .AddTransient<FileService>()
+    .AddTransient<UserService>()
     .AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetValue<string>("dbConnectionString")))
     .AddHttpClient();
 
 builder.Services.AddAuthorization(
                 options =>
                 {
-
                     options.AddPolicy("RegistredUser", policy =>
                         policy.Requirements.Add(new RegistredUserRequirement(true)));
 
