@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LongPollingWorker.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240707172106_Add_File_Duration")]
-    partial class Add_File_Duration
+    [Migration("20240717122616_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -34,10 +34,14 @@ namespace LongPollingWorker.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Duration")
+                    b.Property<int?>("Duration")
                         .HasColumnType("integer");
 
                     b.Property<string>("FileId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileType")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -45,18 +49,15 @@ namespace LongPollingWorker.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string[]>("KeyWords")
-                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.Property<DateTimeOffset?>("LastUpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("MimeType")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<long>("Size")

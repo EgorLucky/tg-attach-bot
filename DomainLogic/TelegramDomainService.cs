@@ -3,18 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using File = DomainLogic.Entities.File;
+using FileType = DomainLogic.Entities.FileType;
 
 namespace DomainLogic
 {
     public class TelegramDomainService
     {
         private readonly AppDbContext _appDb;
-        private readonly HttpClient _httpClient;
 
         public TelegramDomainService(AppDbContext appDb, IHttpClientFactory factory)
         {
             _appDb = appDb;
-            _httpClient = factory.CreateClient();
         }
 
         public async Task<bool> RegisterIfNotRegistred(User telegramUserDto)
@@ -92,7 +91,8 @@ namespace DomainLogic
                 CreatedAt = DateTimeOffset.UtcNow,
                 Width = photoLast.Width,
                 Height = photoLast.Height,
-                OtherPhotoSizes = photo.Where(p => p != photoLast).ToList()
+                OtherPhotoSizes = photo.Where(p => p != photoLast).ToList(),
+                FileType = FileType.Image
             };
 
             var thumb = photo.FirstOrDefault(p => p.Height == 320) 
@@ -105,6 +105,12 @@ namespace DomainLogic
 
         public async Task<File?> CreateFile(Document? document, long telegramUserId)
         {
+            var fileType = document.MimeType switch
+            {
+                "image/jpeg" => FileType.Image,
+                _ => FileType.Other
+            };
+            
             var file = new File()
             {
                 Id = Guid.NewGuid(),
@@ -114,7 +120,8 @@ namespace DomainLogic
                 Name = document.FileName,
                 CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = document.MimeType,
-                ThumbFileId = document.Thumbnail?.FileUniqueId
+                ThumbFileId = document.Thumbnail?.FileUniqueId,
+                FileType = fileType
             };
 
             return file;
@@ -133,7 +140,8 @@ namespace DomainLogic
                 MimeType = animation.MimeType,
                 Width = animation.Width,
                 Height = animation.Height,
-                ThumbFileId = animation.Thumbnail?.FileUniqueId
+                ThumbFileId = animation.Thumbnail?.FileUniqueId,
+                FileType = FileType.Animation
             };
 
             return file;
@@ -151,7 +159,8 @@ namespace DomainLogic
                 CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = audio.MimeType,
                 ThumbFileId = audio.Thumbnail?.FileUniqueId,
-                Duration = audio.Duration
+                Duration = audio.Duration,
+                FileType = FileType.Audio
             };
 
             return file;
@@ -171,7 +180,8 @@ namespace DomainLogic
                 ThumbFileId = video.Thumbnail?.FileUniqueId,
                 Duration = video.Duration,
                 Width = video.Width,
-                Height = video.Height
+                Height = video.Height,
+                FileType = FileType.Video
             };
 
             return file;

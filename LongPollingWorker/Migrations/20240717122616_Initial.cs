@@ -34,16 +34,20 @@ namespace LongPollingWorker.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true),
                     TelegramUserId = table.Column<long>(type: "bigint", nullable: false),
-                    KeyWords = table.Column<string[]>(type: "text[]", nullable: false),
+                    MimeType = table.Column<string>(type: "text", nullable: true),
+                    KeyWords = table.Column<string[]>(type: "text[]", nullable: true),
                     FileId = table.Column<string>(type: "text", nullable: false),
-                    Size = table.Column<int>(type: "integer", nullable: false),
+                    Size = table.Column<long>(type: "bigint", nullable: false),
                     Width = table.Column<int>(type: "integer", nullable: true),
                     Height = table.Column<int>(type: "integer", nullable: true),
+                    Duration = table.Column<int>(type: "integer", nullable: true),
                     ThumbFileId = table.Column<string>(type: "text", nullable: true),
+                    FileType = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    LastUpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                    LastUpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    OtherPhotoSizes = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {

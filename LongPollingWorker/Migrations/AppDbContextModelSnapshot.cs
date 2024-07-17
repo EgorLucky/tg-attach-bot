@@ -38,6 +38,10 @@ namespace LongPollingWorker.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int?>("Height")
                         .HasColumnType("integer");
 
