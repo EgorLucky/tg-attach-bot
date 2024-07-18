@@ -85,7 +85,7 @@ namespace DomainLogic
             {
                 Id = Guid.NewGuid(),
                 TelegramUserId = telegramUserId,
-                FileId = photoLast.FileUniqueId,
+                FileId = photoLast.FileId,
                 Size = photoLast.FileSize.GetValueOrDefault(),
                 Name = "Unnamed File",
                 CreatedAt = DateTimeOffset.UtcNow,
@@ -98,7 +98,7 @@ namespace DomainLogic
             var thumb = photo.FirstOrDefault(p => p.Height == 320) 
                         ?? photo.FirstOrDefault();
 
-            file.ThumbFileId = thumb.FileUniqueId;
+            file.ThumbFileId = thumb.FileId;
             
             return file;
         }
@@ -115,12 +115,12 @@ namespace DomainLogic
             {
                 Id = Guid.NewGuid(),
                 TelegramUserId = telegramUserId,
-                FileId = document.FileUniqueId,
+                FileId = document.FileId,
                 Size = document.FileSize.GetValueOrDefault(),
                 Name = document.FileName,
                 CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = document.MimeType,
-                ThumbFileId = document.Thumbnail?.FileUniqueId,
+                ThumbFileId = document.Thumbnail?.FileId,
                 FileType = fileType
             };
 
@@ -133,14 +133,14 @@ namespace DomainLogic
             {
                 Id = Guid.NewGuid(),
                 TelegramUserId = telegramUserId,
-                FileId = animation.FileUniqueId,
+                FileId = animation.FileId,
                 Size = animation.FileSize.GetValueOrDefault(),
                 Name = animation.FileName,
                 CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = animation.MimeType,
                 Width = animation.Width,
                 Height = animation.Height,
-                ThumbFileId = animation.Thumbnail?.FileUniqueId,
+                ThumbFileId = animation.Thumbnail?.FileId,
                 FileType = FileType.Animation
             };
 
@@ -153,12 +153,12 @@ namespace DomainLogic
             {
                 Id = Guid.NewGuid(),
                 TelegramUserId = telegramUserId,
-                FileId = audio.FileUniqueId,
+                FileId = audio.FileId,
                 Size = audio.FileSize.GetValueOrDefault(),
                 Name = audio.FileName,
                 CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = audio.MimeType,
-                ThumbFileId = audio.Thumbnail?.FileUniqueId,
+                ThumbFileId = audio.Thumbnail?.FileId,
                 Duration = audio.Duration,
                 FileType = FileType.Audio
             };
@@ -172,12 +172,12 @@ namespace DomainLogic
             {
                 Id = Guid.NewGuid(),
                 TelegramUserId = telegramUserId,
-                FileId = video.FileUniqueId,
+                FileId = video.FileId,
                 Size = video.FileSize.GetValueOrDefault(),
                 Name = video.FileName,
                 CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = video.MimeType,
-                ThumbFileId = video.Thumbnail?.FileUniqueId,
+                ThumbFileId = video.Thumbnail?.FileId,
                 Duration = video.Duration,
                 Width = video.Width,
                 Height = video.Height,
