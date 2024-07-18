@@ -1,6 +1,7 @@
 using DomainLogic.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Telegram.Bot;
 
 namespace WebHookApp.Controllers;
 
@@ -22,5 +23,19 @@ public class FileController : Base.BaseController
     {
         var file = await _fileService.GetFileById(id, UserId);
         return Response(file);
+    }
+    
+    [AllowAnonymous]
+    [HttpGet("download/{fileId}")]
+    public async Task<Object> GetFile([FromRoute] string fileId, [FromServices] ITelegramBotClient botClient)
+    {
+        try
+        {
+            var stream = new MemoryStream();
+            var file = await botClient.GetInfoAndDownloadFileAsync(fileId, stream);
+            stream.Position = 0;
+            return stream;
+        }
+        catch (Exception ex) { return null; }
     }
 }
