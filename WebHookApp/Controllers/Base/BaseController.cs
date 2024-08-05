@@ -11,18 +11,24 @@ public abstract class BaseController: ControllerBase
     protected IActionResult Response(BaseResultDTO result)
     {
         if (result.Success) return Ok();
-        return BadRequest(result.ErrorMessage);
+        if (result.ErrorType == ErrorType.BadRequest)
+            return BadRequest(result.ErrorMessage);
+        return NotFound(result.ErrorMessage);
     }
 
     protected IActionResult Response<T>(BaseResultObjectDataDTO<T> result) where T: class
     {
         if (result.Success) return Ok(result.Result);
-        return BadRequest(result.ErrorMessage);
+        if (result.ErrorType == ErrorType.BadRequest)
+            return BadRequest(result.ErrorMessage);
+        return NotFound(result.ErrorMessage);
     }
 
     protected IActionResult Response<T>(BaseResultStructDataDTO<T> result) where T : struct
     {
         if (result.Success) return Ok(result.Result);
-        return BadRequest(result.ErrorMessage);
+        if (result.ErrorType == ErrorType.BadRequest)
+            return BadRequest(result.ErrorMessage);
+        return NotFound(result.ErrorMessage);
     }
 }

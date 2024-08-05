@@ -4,7 +4,10 @@ public record BaseResultDTO
 {
     public bool Success { get; init; } = false;
     public string ErrorMessage { get; init; } = "";
+    public ErrorType? ErrorType { get; init; }
 }
+
+public enum ErrorType { BadRequest, NotFound }
 
 public record BaseResultObjectDataDTO<T>: BaseResultDTO where T : class
 {

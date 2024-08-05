@@ -27,6 +27,8 @@ public class File
     public DateTimeOffset? LastUpdatedAt { get; set; }
     public List<PhotoSize> OtherPhotoSizes { get; set; }
     
+    public DateTimeOffset? DeletedAt { get; set; }
+    
 }
 
 public enum FileType

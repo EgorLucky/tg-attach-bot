@@ -1,3 +1,4 @@
+using DomainLogic.DTOs.Input;
 using DomainLogic.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,5 +38,19 @@ public class FileController : Base.BaseController
             return stream;
         }
         catch (Exception ex) { return null; }
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> Update([FromBody] UpdateFileDTO dto)
+    {
+        var result = await _fileService.Update(dto, UserId);
+        return Response(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete([FromRoute] Guid id)
+    {
+        var result = await _fileService.Delete(id, UserId);
+        return Response(result);
     }
 }
