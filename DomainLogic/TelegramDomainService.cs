@@ -111,11 +111,11 @@ namespace DomainLogic
 
         public async Task<File?> CreateFile(Document? document, long telegramUserId)
         {
-            var fileType = document.MimeType switch
-            {
-                "image/jpeg" => FileType.Image,
-                _ => FileType.Other
-            };
+            var fileType = FileType.Other;
+
+            if (document.MimeType.StartsWith("image/")) fileType = FileType.Image;
+            if (document.MimeType.StartsWith("audio/")) fileType = FileType.Audio;
+            if (document.MimeType.StartsWith("video/")) fileType = FileType.Video;
             
             var file = new File()
             {
