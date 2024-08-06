@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using DomainLogic.DTOs.Input;
 using DomainLogic.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -27,17 +28,37 @@ public class FileController : Base.BaseController
     }
     
     [AllowAnonymous]
-    [HttpGet("download/{fileId}")]
-    public async Task<Object> GetFile([FromRoute] string fileId, [FromServices] ITelegramBotClient botClient)
+    [HttpGet("download/{filePath}")]
+    public async Task GetFile(
+        [FromRoute] string filePath,
+        [FromQuery] bool isImage,
+        [FromServices] BotConfiguration botConfiguration, 
+        [FromServices] IHttpClientFactory httpClientFactory)
     {
-        try
+        var httpClient = httpClientFactory.CreateClient();
+
+        var httpRequest = new HttpRequestMessage()
         {
-            var stream = new MemoryStream();
-            var file = await botClient.GetInfoAndDownloadFileAsync(fileId, stream);
-            stream.Position = 0;
-            return stream;
+            Method = HttpMethod.Get,
+            RequestUri = new($"https://api.telegram.org/file/bot{botConfiguration.BotToken}/{filePath}"),
+        };
+        
+        var rangeHeader = Request.Headers.Range;
+        if (rangeHeader.Any())
+        {
+            httpRequest.Headers.Range = RangeHeaderValue.Parse(rangeHeader.First());
         }
-        catch (Exception ex) { return null; }
+
+        var response = await httpClient.SendAsync(httpRequest);
+
+        if (response.Content.Headers.ContentRange is not null)
+            ControllerContext.HttpContext.Response.Headers.ContentRange =
+                response.Content.Headers.ContentRange.ToString();
+        if (response.Content.Headers.ContentType is not null && !isImage)
+            ControllerContext.HttpContext.Response.Headers.ContentType =
+                response.Content.Headers.ContentType.ToString();
+        
+        await response.Content.CopyToAsync(HttpContext.Response.Body);
     }
     
     [HttpPost]
