@@ -1,5 +1,6 @@
 ﻿using DomainLogic.Entities;
 using Microsoft.EntityFrameworkCore;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using File = DomainLogic.Entities.File;
@@ -10,10 +11,12 @@ namespace DomainLogic
     public class TelegramDomainService
     {
         private readonly AppDbContext _appDb;
+        private readonly ITelegramBotClient _tgClient;
 
-        public TelegramDomainService(AppDbContext appDb, IHttpClientFactory factory)
+        public TelegramDomainService(AppDbContext appDb, ITelegramBotClient tgClient)
         {
             _appDb = appDb;
+            _tgClient = tgClient;
         }
 
         public async Task<bool> RegisterIfNotRegistred(User telegramUserDto)
@@ -72,6 +75,9 @@ namespace DomainLogic
                 }
                     break;
             }
+
+            file.FilePath = (await _tgClient.GetFileAsync(file.FileId)).FilePath;
+            
             await _appDb.AddAsync(file);
             await _appDb.SaveChangesAsync();
 
