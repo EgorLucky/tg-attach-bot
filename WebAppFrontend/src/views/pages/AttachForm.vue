@@ -3,6 +3,7 @@
     import moment from "moment";
     import FileService from "../../service/FileService";
     import { useToast } from 'primevue/usetoast';
+    import { getFileUrl } from "../../service/FileUtils";
     
     const toast = useToast();
     const fileId = Telegram.WebApp.initDataUnsafe.start_param;
@@ -18,9 +19,7 @@
 
     const fileUrl = computed(() => { 
         if (file) {
-            return import.meta.env.VITE_BACKEND_API_URL + '/file/download/' 
-            + encodeURIComponent(file.value.filePath) + '?isImage=' 
-            + (file.value.fileType === 'Animation' || file.value.fileType === 'Image')
+            return getFileUrl(file.value)
         }
     });
 
