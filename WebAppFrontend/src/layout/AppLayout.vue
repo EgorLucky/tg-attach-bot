@@ -3,6 +3,7 @@ import { computed, watch, ref, onMounted } from 'vue';
 import AppTopbar from './AppTopbar.vue';
 import { useLayout } from '@/layout/composables/layout';
 import UserService from '../service/UserService';
+import localStorageService from '../service/LocalSorageService';
 
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();
 
@@ -57,7 +58,9 @@ const userService = new UserService();
 const userProfile = ref(null);
 
 const getUserProfile = async () => {
-    userProfile.value = await userService.getUserProfile();
+    const getUserProfileResult = await userService.getUserProfile();
+    localStorageService.saveUserInfo(getUserProfileResult);
+    userProfile.value = getUserProfileResult;
 }
 
 onMounted(async () => {
@@ -72,7 +75,7 @@ onMounted(async () => {
         <!-- <div class="layout-sidebar">
             <app-sidebar></app-sidebar>
         </div> -->
-        <div class="layout-main-container">
+        <div class="layout-main-container" v-if="userProfile">
             <div class="layout-main">
                 <router-view></router-view>
             </div>

@@ -1,5 +1,5 @@
 import axios from "axios";
-import tokenStorageService from "./TokenSorageService";
+import localStorageService from "./LocalSorageService";
 
 class BasicRestServiceClient {
     static instance = axios.create({
@@ -16,12 +16,12 @@ class BasicRestServiceClient {
         useAuthorization = false
     ) {
         if (useAuthorization) {
-            const token = tokenStorageService.getTokenFromStorage();
+            const token = localStorageService.getAccessToken();
             if (!token) {
                 await this.signInByTelegramWebAppData()
             }
 
-            headers["Authorization"] = "TelegramWebAppData " + tokenStorageService.getTokenFromStorage()
+            headers["Authorization"] = "TelegramWebAppData " + localStorageService.getAccessToken()
         }
 
         const requestData = {
@@ -35,7 +35,7 @@ class BasicRestServiceClient {
 
         if(useAuthorization && response.status === 401) {
             this.signInByTelegramWebAppData();
-            requestData.headers["Authorization"] = "TelegramWebAppData " + tokenStorageService.getTokenFromStorage();
+            requestData.headers["Authorization"] = "TelegramWebAppData " + localStorageService.getAccessToken();
             response = await this.getResponse(requestData);
         }
 
@@ -77,7 +77,7 @@ class BasicRestServiceClient {
             [200]);
         
         if (getTokenResult?.access_token) {
-            tokenStorageService.saveTokenToStorage(getTokenResult.access_token)
+            localStorageService.saveAccessToken(getTokenResult.access_token)
         }
         else {
             throw new Error("authentication failed");
