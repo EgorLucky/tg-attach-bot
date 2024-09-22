@@ -55,11 +55,11 @@ namespace WebHookApp.AuthenticationTelegram
 
                     var claims = new Claim[] {
                         new Claim("userId", dictionaryData["id"] ?? ""),
-                        new Claim("last_name", dictionaryData.GetValueOrDefault("last_name") ?? ""),
-                        new Claim("first_name", dictionaryData.GetValueOrDefault("first_name") ?? ""),
-                        new Claim(ClaimTypes.Surname, dictionaryData.GetValueOrDefault("last_name") ?? ""),
-                        new Claim(ClaimTypes.Name, dictionaryData.GetValueOrDefault("first_name") ?? ""),
-                        new Claim("username", dictionaryData.GetValueOrDefault("username") ?? ""),
+                        new Claim("last_name", dictionaryData.GetValueOrDefault("last_name", "")),
+                        new Claim("first_name", dictionaryData.GetValueOrDefault("first_name", "")),
+                        new Claim(ClaimTypes.Surname, dictionaryData.GetValueOrDefault("last_name", "")),
+                        new Claim(ClaimTypes.Name, dictionaryData.GetValueOrDefault("first_name", "")),
+                        new Claim("username", dictionaryData.GetValueOrDefault("username", "")),
                         new Claim(ClaimTypes.AuthenticationMethod, "Telegram")
                     };
                     var identity = new ClaimsIdentity(claims, "Telegram");
@@ -83,11 +83,11 @@ namespace WebHookApp.AuthenticationTelegram
 
                     var claims = new Claim[] {
                         new Claim("userId", user["id"] ?? ""),
-                        new Claim("last_name", user["last_name"] ?? ""),
-                        new Claim("first_name", user["first_name"] ?? ""),
-                        new Claim(ClaimTypes.Surname, user["last_name"] ?? ""),
-                        new Claim(ClaimTypes.Name, user["first_name"] ?? ""),
-                        new Claim("username", user["username"] ?? ""),
+                        new Claim("last_name", user.GetValueOrDefault("last_name", "")),
+                        new Claim("first_name", user.GetValueOrDefault("first_name", "")),
+                        new Claim(ClaimTypes.Surname, user.GetValueOrDefault("last_name", "")),
+                        new Claim(ClaimTypes.Name, user.GetValueOrDefault("first_name", "")),
+                        new Claim("username", user.GetValueOrDefault("username", "")),
                         new Claim(ClaimTypes.AuthenticationMethod, "Telegram")
                     };
                     var identity = new ClaimsIdentity(claims, "Telegram");
