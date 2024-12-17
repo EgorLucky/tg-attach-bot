@@ -64,4 +64,31 @@ public class FileService
 
         return new GetFileByIdResultDTO() { Success = true, Result = file };
     }
+
+    public async Task<FileListResultDTO> GetList(FileListParameterDTO parameters, long userId)
+    {
+        var query = _dbContext.Files.AsQueryable();
+        
+        if (parameters.UserId is not null)
+            query = query.Where(f => f.TelegramUserId == userId);
+
+        if (parameters.Source == FileListSources.Tagged)
+        {
+            query = query.Where(f => f.KeyWords != null);
+            if (parameters.KeyWords is not null && parameters.KeyWords.Any())
+                foreach (var keyWord in parameters.KeyWords)
+                    query = query.Where(f => f.KeyWords.Contains(keyWord));
+        }
+        else query = query.Where(f => f.KeyWords == null);
+
+        query = query.OrderByDescending(f => f.CreatedAt);
+        
+        if (parameters.Offset is not null)
+            query = query.Where(f => f.CreatedAt <= parameters.Offset);
+        query = query.Take(parameters.Take);
+        
+        var results = await query.ToListAsync();
+        
+        return new FileListResultDTO { Success = true, Result = results };
+    }
 }

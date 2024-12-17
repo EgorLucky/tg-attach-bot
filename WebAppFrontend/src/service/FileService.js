@@ -19,4 +19,11 @@ export default class FileService extends BasicRestServiceClient {
             `file/${id}`, 
             "delete", null, {}, [200], true);
     }
+    async list(options) {
+        return await this.sendRequest(
+            `file/list`,
+            "post", options,
+            {}, [200], true
+        )
+    }
 }

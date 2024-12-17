@@ -57,7 +57,7 @@ public class FileController : Base.BaseController
         if (response.Content.Headers.ContentType is not null && !isImage)
             ControllerContext.HttpContext.Response.Headers.ContentType =
                 response.Content.Headers.ContentType.ToString();
-        
+        HttpContext.Response.StatusCode = (int)response.StatusCode;
         await response.Content.CopyToAsync(HttpContext.Response.Body);
     }
     
@@ -72,6 +72,13 @@ public class FileController : Base.BaseController
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
         var result = await _fileService.Delete(id, UserId);
+        return Response(result);
+    }
+
+    [HttpPost("list")]
+    public async Task<IActionResult> GetList([FromBody] FileListParameterDTO parameters)
+    {
+        var result = await _fileService.GetList(parameters, UserId);
         return Response(result);
     }
 }

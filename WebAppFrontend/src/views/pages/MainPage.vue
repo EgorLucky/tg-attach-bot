@@ -1,6 +1,39 @@
 <script setup>
-    import { ref } from 'vue'; 
-    const searchTags = ref(null);
+import { onMounted, ref } from 'vue';
+import FileService from '../../service/FileService';
+import { useToast } from 'primevue/usetoast';
+import localStorageService from '../../service/LocalSorageService';
+import Attachment from '../../components/attachment/Attachment.vue';
+import { AttachmentMode } from '../../components/attachment/AttachmentMode';
+
+const userProfile = localStorageService.getUserInfo()
+
+const fileService = new FileService();
+const files = ref(null);
+const searchTags = ref(null);
+const userId = userProfile.id;
+const source = ref('notTagged')
+
+const toast = useToast();
+
+onMounted(async () => {
+    try {
+        files.value = await fileService.list({
+            userId: userId,
+            keyWords: searchTags.value,
+            take: 100,
+            source: source.value
+        });
+    } catch (error) {
+        console.log(error);
+        toast.add({ 
+            severity: 'error', 
+            summary: 'Error getting file list!', 
+            detail: error.message, 
+            group: 'br' 
+        });
+    }
+});
 </script>
 <template>
     <div class="grid">
@@ -22,187 +55,83 @@
 
                 <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                     <h5>Manage attachments</h5>
-                    <InputGroup >
+                    <InputGroup>
                         <InputGroupAddon>
                             <i class="pi pi-search"></i>
                         </InputGroupAddon>
                         <Chips 
-                            id="key-words"
-                            class="w-full sm:w-auto"
-                            placeholder='Search...'
+                            id="key-words" 
+                            class="w-full sm:w-auto" 
+                            placeholder="Search..." 
                             v-model="searchTags" 
-                            separator=" "
-                            :allowDuplicate="false"
+                            separator=" " 
+                            :allowDuplicate="false" 
                         />
                     </InputGroup>
                 </div>
-
-                <!-- <DataTable
-                    ref="dt"
-                    :value="products"
-                    v-model:selection="selectedProducts"
-                    dataKey="id"
-                    :paginator="true"
-                    :rows="10"
-                    :filters="filters"
-                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    :rowsPerPageOptions="[5, 10, 25]"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
-                >
-                    <template #header>
-                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                            <h5 class="m-0">Manage Products</h5>
-                            <IconField iconPosition="left" class="block mt-2 md:mt-0">
-                                <InputIcon class="pi pi-search" />
-                                <InputText class="w-full sm:w-auto" v-model="filters['global'].value" placeholder="Search..." />
-                            </IconField>
-                        </div>
-                    </template>
-
-                    <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                    <Column field="code" header="Code" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Code</span>
-                            {{ slotProps.data.code }}
-                        </template>
-                    </Column>
-                    <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Name</span>
-                            {{ slotProps.data.name }}
-                        </template>
-                    </Column>
-                    <Column header="Image" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Image</span>
-                            <img :src="'/demo/images/product/' + slotProps.data.image" :alt="slotProps.data.image" class="shadow-2" width="100" />
-                        </template>
-                    </Column>
-                    <Column field="price" header="Price" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Price</span>
-                            {{ formatCurrency(slotProps.data.price) }}
-                        </template>
-                    </Column>
-                    <Column field="category" header="Category" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Category</span>
-                            {{ slotProps.data.category }}
-                        </template>
-                    </Column>
-                    <Column field="rating" header="Reviews" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Rating</span>
-                            <Rating :modelValue="slotProps.data.rating" :readonly="true" :cancel="false" />
-                        </template>
-                    </Column>
-                    <Column field="inventoryStatus" header="Status" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Status</span>
-                            <Tag :severity="getBadgeSeverity(slotProps.data.inventoryStatus)">{{ slotProps.data.inventoryStatus }}</Tag>
-                        </template>
-                    </Column>
-                    <Column headerStyle="min-width:10rem;">
-                        <template #body="slotProps">
-                            <Button icon="pi pi-pencil" class="mr-2" severity="success" rounded @click="editProduct(slotProps.data)" />
-                            <Button icon="pi pi-trash" class="mt-2" severity="warning" rounded @click="confirmDeleteProduct(slotProps.data)" />
-                        </template>
-                    </Column>
-                </DataTable>
-
-                <Dialog v-model:visible="productDialog" :style="{ width: '450px' }" header="Product Details" :modal="true" class="p-fluid">
-                    <img :src="'/demo/images/product/' + product.image" :alt="product.image" v-if="product.image" width="150" class="mt-0 mx-auto mb-5 block shadow-2" />
-                    <div class="field">
-                        <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="product.name" required="true" autofocus :invalid="submitted && !product.name" />
-                        <small class="p-invalid" v-if="submitted && !product.name">Name is required.</small>
-                    </div>
-                    <div class="field">
-                        <label for="description">Description</label>
-                        <Textarea id="description" v-model="product.description" required="true" rows="3" cols="20" />
-                    </div>
-
-                    <div class="field">
-                        <label for="inventoryStatus" class="mb-3">Inventory Status</label>
-                        <Dropdown id="inventoryStatus" v-model="product.inventoryStatus" :options="statuses" optionLabel="label" placeholder="Select a Status">
-                            <template #value="slotProps">
-                                <div v-if="slotProps.value && slotProps.value.value">
-                                    <span :class="'product-badge status-' + slotProps.value.value">{{ slotProps.value.label }}</span>
+                <DataView
+                    :value="files" 
+                    layout="grid">
+                    <template #grid="slotProps">
+                        <div class="grid grid-cols-12 gap-4">
+                            <Attachment 
+                                v-for="(item, index) in slotProps.items"
+                                :fileId="item.id"
+                                :mode="AttachmentMode.Read"
+                                :file="item"
+                            />
+                            <!-- <div 
+                                v-for="(item, index) in slotProps.items" 
+                                :key="index" 
+                                class="col-span-12 sm:col-span-6 lg:col-span-4 p-2"
+                            >
+                                <div class="p-6 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded flex flex-col">
+                                    <div class="bg-surface-50 flex justify-center rounded p-4">
+                                        <div class="relative mx-auto">
+                                            <img 
+                                                class="rounded w-full" 
+                                                :src="getFileUrl(item)" 
+                                                :alt="item.name" 
+                                                style="max-width: 300px" 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="pt-6">
+                                        <div class="flex flex-row justify-between items-start gap-2">
+                                            <div>
+                                                <span class="font-medium text-surface-500 dark:text-surface-400 text-sm">{{ item.category }}</span>
+                                                <div class="text-lg font-medium mt-1">{{ item.name }}</div>
+                                            </div>
+                                            <div class="bg-surface-100 p-1" style="border-radius: 30px">
+                                                <div
+                                                    class="bg-surface-0 flex items-center gap-2 justify-center py-1 px-2"
+                                                    style="
+                                                        border-radius: 30px;
+                                                        box-shadow:
+                                                            0px 1px 2px 0px rgba(0, 0, 0, 0.04),
+                                                            0px 1px 2px 0px rgba(0, 0, 0, 0.06);
+                                                    "
+                                                >
+                                                    <span class="text-surface-900 font-medium text-sm">{{ item.rating }}</span>
+                                                    <i class="pi pi-star-fill text-yellow-500"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col gap-6 mt-6">
+                                            <span class="text-2xl font-semibold">${{ item.price }}</span>
+                                            <div class="flex gap-2">
+                                                <Button icon="pi pi-shopping-cart" label="Buy Now" :disabled="item?.inventoryStatus === 'OUTOFSTOCK'" class="flex-auto whitespace-nowrap"></Button>
+                                                <Button icon="pi pi-heart" outlined></Button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div v-else-if="slotProps.value && !slotProps.value.value">
-                                    <span :class="'product-badge status-' + slotProps.value.toLowerCase()">{{ slotProps.value }}</span>
-                                </div>
-                                <span v-else>
-                                    {{ slotProps.placeholder }}
-                                </span>
-                            </template>
-                        </Dropdown>
-                    </div>
-
-                    <div class="field">
-                        <label class="mb-3">Category</label>
-                        <div class="formgrid grid">
-                            <div class="field-radiobutton col-6">
-                                <RadioButton id="category1" name="category" value="Accessories" v-model="product.category" />
-                                <label for="category1">Accessories</label>
-                            </div>
-                            <div class="field-radiobutton col-6">
-                                <RadioButton id="category2" name="category" value="Clothing" v-model="product.category" />
-                                <label for="category2">Clothing</label>
-                            </div>
-                            <div class="field-radiobutton col-6">
-                                <RadioButton id="category3" name="category" value="Electronics" v-model="product.category" />
-                                <label for="category3">Electronics</label>
-                            </div>
-                            <div class="field-radiobutton col-6">
-                                <RadioButton id="category4" name="category" value="Fitness" v-model="product.category" />
-                                <label for="category4">Fitness</label>
-                            </div>
+                            </div> -->
                         </div>
-                    </div>
-
-                    <div class="formgrid grid">
-                        <div class="field col">
-                            <label for="price">Price</label>
-                            <InputNumber id="price" v-model="product.price" mode="currency" currency="USD" locale="en-US" :invalid="submitted && !product.price" :required="true" />
-                            <small class="p-invalid" v-if="submitted && !product.price">Price is required.</small>
-                        </div>
-                        <div class="field col">
-                            <label for="quantity">Quantity</label>
-                            <InputNumber id="quantity" v-model="product.quantity" integeronly />
-                        </div>
-                    </div>
-                    <template #footer>
-                        <Button label="Cancel" icon="pi pi-times" text="" @click="hideDialog" />
-                        <Button label="Save" icon="pi pi-check" text="" @click="saveProduct" />
                     </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deleteProductDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="product"
-                            >Are you sure you want to delete <b>{{ product.name }}</b
-                            >?</span
-                        >
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" text @click="deleteProductDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" text @click="deleteProduct" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deleteProductsDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="product">Are you sure you want to delete the selected products?</span>
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" text @click="deleteProductsDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" text @click="deleteSelectedProducts" />
-                    </template>
-                </Dialog> -->
+                </DataView>
             </div>
         </div>
     </div>
+    <Toast position="bottom-right" group="br" />
 </template>
