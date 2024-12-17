@@ -101,6 +101,7 @@ namespace WebHookApp.AuthenticationTelegram
             TryAppend("chat_instance");
             TryAppend("chat_type");
             //TryAppend("hash");
+            TryAppend("signature");
             TryAppend("start_param");
             TryAppend("user", true);
 
