@@ -13,6 +13,26 @@ namespace LongPollingWorker.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "FileMetadata",
+                columns: table => new
+                {
+                    FileUniqueId = table.Column<string>(type: "text", nullable: false),
+                    FileId = table.Column<string>(type: "text", nullable: false),
+                    Size = table.Column<long>(type: "bigint", nullable: false),
+                    Width = table.Column<int>(type: "integer", nullable: true),
+                    Height = table.Column<int>(type: "integer", nullable: true),
+                    Duration = table.Column<int>(type: "integer", nullable: true),
+                    ThumbFileId = table.Column<string>(type: "text", nullable: true),
+                    MimeType = table.Column<string>(type: "text", nullable: true),
+                    FileType = table.Column<string>(type: "text", nullable: false),
+                    OtherPhotoSizes = table.Column<string>(type: "jsonb", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileMetadata", x => x.FileUniqueId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TelegramUsers",
                 columns: table => new
                 {
@@ -30,30 +50,29 @@ namespace LongPollingWorker.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Files",
+                name: "UserFiles",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: true),
                     TelegramUserId = table.Column<long>(type: "bigint", nullable: false),
-                    MimeType = table.Column<string>(type: "text", nullable: true),
+                    FileUniqueId = table.Column<string>(type: "text", nullable: false),
                     KeyWords = table.Column<string[]>(type: "text[]", nullable: true),
-                    FileId = table.Column<string>(type: "text", nullable: false),
-                    Size = table.Column<long>(type: "bigint", nullable: false),
-                    Width = table.Column<int>(type: "integer", nullable: true),
-                    Height = table.Column<int>(type: "integer", nullable: true),
-                    Duration = table.Column<int>(type: "integer", nullable: true),
-                    ThumbFileId = table.Column<string>(type: "text", nullable: true),
-                    FileType = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    OtherPhotoSizes = table.Column<string>(type: "jsonb", nullable: true)
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Files", x => x.Id);
+                    table.PrimaryKey("PK_UserFiles", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Files_TelegramUsers_TelegramUserId",
+                        name: "FK_UserFiles_FileMetadata_FileUniqueId",
+                        column: x => x.FileUniqueId,
+                        principalTable: "FileMetadata",
+                        principalColumn: "FileUniqueId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserFiles_TelegramUsers_TelegramUserId",
                         column: x => x.TelegramUserId,
                         principalTable: "TelegramUsers",
                         principalColumn: "Id",
@@ -61,8 +80,13 @@ namespace LongPollingWorker.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Files_TelegramUserId",
-                table: "Files",
+                name: "IX_UserFiles_FileUniqueId",
+                table: "UserFiles",
+                column: "FileUniqueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserFiles_TelegramUserId",
+                table: "UserFiles",
                 column: "TelegramUserId");
         }
 
@@ -70,7 +94,10 @@ namespace LongPollingWorker.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Files");
+                name: "UserFiles");
+
+            migrationBuilder.DropTable(
+                name: "FileMetadata");
 
             migrationBuilder.DropTable(
                 name: "TelegramUsers");

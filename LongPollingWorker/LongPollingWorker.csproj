@@ -37,4 +37,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DomainLogic\DomainLogic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
   </ItemGroup></Project>

@@ -2,9 +2,10 @@ using DomainLogic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System.Text.Json.Serialization;
 using DomainLogic.Services;
 using Newtonsoft.Json.Converters;
+using StackExchange.Redis.Extensions.Core.Configuration;
+using StackExchange.Redis.Extensions.System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.CommandRouting;
 using WebHookApp.AuthenticationTelegram;
@@ -47,8 +48,13 @@ builder.Services
     .AddTransient<TelegramDomainService>()
     .AddTransient<FileService>()
     .AddTransient<UserService>()
+    .AddTransient<TelegramFileDownloadService>()
     .AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetValue<string>("dbConnectionString")))
-    .AddHttpClient();
+    .AddStackExchangeRedisExtensions<SystemTextJsonSerializer>(new RedisConfiguration()
+    {
+        ConnectionString = builder.Configuration.GetValue<string>("redis")
+    });
+    
 
 builder.Services.AddAuthorization(
                 options =>
@@ -78,11 +84,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
 
-//}
 app.UseCors("CorsPolicy");
 app.UseSwagger();
 app.UseSwaggerUI(c => {

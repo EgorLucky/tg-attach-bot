@@ -1,22 +1,17 @@
 ﻿using DomainLogic.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using File = DomainLogic.Entities.File;
 
 namespace DomainLogic
 {
-    public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
+    public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
         public DbSet<TelegramUser> TelegramUsers { get; set; }
-        public DbSet<File> Files { get; set; }
+        public DbSet<UserFile> UserFiles { get; set; }
+        public DbSet<FileMetadata> FileMetadata { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,10 +22,19 @@ namespace DomainLogic
                 entity.HasKey(e => e.Id);
             });
 
-            modelBuilder.Entity<File>(entity =>
+            modelBuilder.Entity<UserFile>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.HasOne<TelegramUser>().WithMany().HasForeignKey(e => e.TelegramUserId);
+                entity.HasOne<TelegramUser>()
+                    .WithMany()
+                    .HasForeignKey(e => e.TelegramUserId);
+                entity.HasOne<FileMetadata>(e => e.Content)
+                    .WithMany()
+                    .HasForeignKey(f => f.FileUniqueId);
+            });
+            modelBuilder.Entity<FileMetadata>(entity =>
+            {
+                entity.HasKey(e => e.FileUniqueId);
                 entity.Property(p => p.FileType).HasConversion(new EnumToStringConverter<FileType>());
                 entity.OwnsMany(e => e.OtherPhotoSizes, b =>
                 {

@@ -1,3 +1,3 @@
 namespace DomainLogic.DTOs.Output;
 
-public record FileListResultDTO : BaseResultObjectDataDTO<List<DomainLogic.Entities.File>>;
+public record FileListResultDTO : BaseResultObjectDataDTO<List<File>>;

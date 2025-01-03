@@ -11,7 +11,6 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using File = DomainLogic.Entities.File;
 
 namespace DomainLogic
 {
@@ -46,7 +45,7 @@ namespace DomainLogic
                 nameof(Update.Message),
                 nameof(Message.From))] User telegramUser)
         {
-            await  _telegramDomainService.RegisterIfNotRegistred(telegramUser);
+            await RegisterIfNotRegistred(telegramUser);
             _bot.SendTextMessageAsync(telegramUser.Id,
                 "Welcome! You can send messages with attachments here and i will save them for your farther access to them.");
         }

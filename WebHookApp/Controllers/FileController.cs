@@ -28,37 +28,25 @@ public class FileController : Base.BaseController
     }
     
     [AllowAnonymous]
-    [HttpGet("download/{filePath}")]
+    [HttpGet("download/{fileId}")]
     public async Task GetFile(
-        [FromRoute] string filePath,
+        [FromRoute] string fileId,
         [FromQuery] bool isImage,
-        [FromServices] BotConfiguration botConfiguration, 
-        [FromServices] IHttpClientFactory httpClientFactory)
+        [FromServices] TelegramFileDownloadService telegramFileDownloadService)
     {
-        var httpClient = httpClientFactory.CreateClient();
-
-        var httpRequest = new HttpRequestMessage()
-        {
-            Method = HttpMethod.Get,
-            RequestUri = new($"https://api.telegram.org/file/bot{botConfiguration.BotToken}/{filePath}"),
-        };
-        
-        var rangeHeader = Request.Headers.Range;
-        if (rangeHeader.Any())
-        {
-            httpRequest.Headers.Range = RangeHeaderValue.Parse(rangeHeader.First());
-        }
-
-        var response = await httpClient.SendAsync(httpRequest);
-
-        if (response.Content.Headers.ContentRange is not null)
-            ControllerContext.HttpContext.Response.Headers.ContentRange =
-                response.Content.Headers.ContentRange.ToString();
-        if (response.Content.Headers.ContentType is not null && !isImage)
-            ControllerContext.HttpContext.Response.Headers.ContentType =
-                response.Content.Headers.ContentType.ToString();
-        HttpContext.Response.StatusCode = (int)response.StatusCode;
-        await response.Content.CopyToAsync(HttpContext.Response.Body);
+        await telegramFileDownloadService.DownloadFile(
+            fileId,
+            Request.Headers.Range.FirstOrDefault(),
+            fileMetaData =>
+            {
+                var responseHeaders = ControllerContext.HttpContext.Response.Headers;
+                if (fileMetaData.ContentRange is not null)
+                    responseHeaders.ContentRange = fileMetaData.ContentRange;
+                if (fileMetaData.ContentType is not null && !isImage)
+                    responseHeaders.ContentType = fileMetaData.ContentType;
+                HttpContext.Response.StatusCode = fileMetaData.StatusCode;
+            },
+            HttpContext.Response.Body);
     }
     
     [HttpPost]

@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using File = DomainLogic.Entities.File;
 using FileType = DomainLogic.Entities.FileType;
 
 namespace DomainLogic
@@ -43,58 +42,106 @@ namespace DomainLogic
             await _appDb.AddAsync(telegramUser);
             await _appDb.SaveChangesAsync();
         }
-        
-        public async Task<File> SaveFile(Message? message)
+
+        public async Task<UserFile> SaveFile(Message? message)
         {
-            var file = default(File);
+            var userFile = new UserFile()
+            {
+                Id = Guid.NewGuid(),
+                TelegramUserId = message.From.Id,
+                Name = "Unnamed File",
+                CreatedAt = DateTimeOffset.UtcNow,
+            };
+
+            var fileUniqueId = GetUniqueFileIdFromMessage(message);
+            if (!await _appDb.FileMetadata.AnyAsync(f => f.FileUniqueId == fileUniqueId))
+            {
+                try
+                {
+                    var file = CreateFileFromMessage(message);
+
+                    await _appDb.AddAsync(file);
+                    await _appDb.SaveChangesAsync();
+                }
+                catch(DbUpdateException ex)
+                {
+                    if (ex.InnerException?.Message?.Contains("23505") is true)
+                    {
+                        //unique key duplicate exception handling
+                        var dbContextFileEntry = _appDb.ChangeTracker
+                            .Entries<FileMetadata>()
+                            .First(f => f.Entity.FileUniqueId == fileUniqueId);
+                        dbContextFileEntry.State = EntityState.Detached;
+                    }
+                }
+            }
+            
+            userFile.FileUniqueId = fileUniqueId;
+
+            await _appDb.AddAsync(userFile);
+            await _appDb.SaveChangesAsync();
+
+            return userFile;
+        }
+
+        string GetUniqueFileIdFromMessage(Message message)
+        {
+            var fileUniqueId = "";
             switch (message.Type)
             {
                 case MessageType.Photo:
-                {
-                    file = await CreateFile(message.Photo, message.From.Id);
-                }
+                    fileUniqueId = message.Photo.Last().FileUniqueId;
                     break;
                 case MessageType.Document:
-                {
-                    file = await CreateFile(message.Document, message.From.Id);
-                }
+                    fileUniqueId = message.Document.FileUniqueId;
                     break;
                 case MessageType.Animation:
-                {
-                    file = await CreateFile(message.Animation, message.From.Id);
-                }
+                    fileUniqueId = message.Animation.FileUniqueId;
                     break;
                 case MessageType.Audio:
-                {
-                    file = await CreateFile(message.Audio, message.From.Id);
-                }
+                    fileUniqueId = message.Audio.FileUniqueId;
                     break;
                 case MessageType.Video:
-                {
-                    file = await CreateFile(message.Video, message.From.Id);
-                }
+                    fileUniqueId = message.Video.FileUniqueId;
                     break;
             }
 
-            file.FilePath = (await _tgClient.GetFileAsync(file.FileId)).FilePath;
-            
-            await _appDb.AddAsync(file);
-            await _appDb.SaveChangesAsync();
+            return fileUniqueId;
+        }
+
+        FileMetadata CreateFileFromMessage(Message? message)
+        {
+            var file = default(FileMetadata);
+            switch (message.Type)
+            {
+                case MessageType.Photo:
+                    file = CreateFile(message.Photo);
+                    break;
+                case MessageType.Document:
+                    file = CreateFile(message.Document);
+                    break;
+                case MessageType.Animation:
+                    file = CreateFile(message.Animation);
+                    break;
+                case MessageType.Audio:
+                    file = CreateFile(message.Audio);
+                    break;
+                case MessageType.Video:
+                    file = CreateFile(message.Video);
+                    break;
+            }
 
             return file;
         }
 
-        public async Task<File?> CreateFile(PhotoSize[]? photo, long telegramUserId)
+        FileMetadata? CreateFile(PhotoSize[]? photo)
         {
             var photoLast = photo.Last();
-            var file = new File()
+            var file = new FileMetadata()
             {
-                Id = Guid.NewGuid(),
-                TelegramUserId = telegramUserId,
                 FileId = photoLast.FileId,
+                FileUniqueId = photoLast.FileUniqueId,
                 Size = photoLast.FileSize.GetValueOrDefault(),
-                Name = "Unnamed File",
-                CreatedAt = DateTimeOffset.UtcNow,
                 Width = photoLast.Width,
                 Height = photoLast.Height,
                 OtherPhotoSizes = photo.Where(p => p != photoLast).ToList(),
@@ -109,7 +156,7 @@ namespace DomainLogic
             return file;
         }
 
-        public async Task<File?> CreateFile(Document? document, long telegramUserId)
+        FileMetadata? CreateFile(Document? document)
         {
             var fileType = FileType.Other;
 
@@ -117,14 +164,11 @@ namespace DomainLogic
             if (document.MimeType.StartsWith("audio/")) fileType = FileType.Audio;
             if (document.MimeType.StartsWith("video/")) fileType = FileType.Video;
             
-            var file = new File()
+            var file = new FileMetadata()
             {
-                Id = Guid.NewGuid(),
-                TelegramUserId = telegramUserId,
                 FileId = document.FileId,
+                FileUniqueId = document.FileUniqueId,
                 Size = document.FileSize.GetValueOrDefault(),
-                Name = document.FileName,
-                CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = document.MimeType,
                 ThumbFileId = document.Thumbnail?.FileId,
                 FileType = fileType
@@ -133,16 +177,13 @@ namespace DomainLogic
             return file;
         }
 
-        public async Task<File?> CreateFile(Animation? animation, long telegramUserId)
+        FileMetadata? CreateFile(Animation? animation)
         {
-            var file = new File()
+            var file = new FileMetadata()
             {
-                Id = Guid.NewGuid(),
-                TelegramUserId = telegramUserId,
                 FileId = animation.FileId,
+                FileUniqueId = animation.FileUniqueId,
                 Size = animation.FileSize.GetValueOrDefault(),
-                Name = animation.FileName,
-                CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = animation.MimeType,
                 Width = animation.Width,
                 Height = animation.Height,
@@ -153,16 +194,13 @@ namespace DomainLogic
             return file;
         }
 
-        public async Task<File?> CreateFile(Audio? audio, long telegramUserId)
+        FileMetadata? CreateFile(Audio? audio)
         {
-            var file = new File()
+            var file = new FileMetadata()
             {
-                Id = Guid.NewGuid(),
-                TelegramUserId = telegramUserId,
                 FileId = audio.FileId,
+                FileUniqueId = audio.FileUniqueId,
                 Size = audio.FileSize.GetValueOrDefault(),
-                Name = audio.FileName,
-                CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = audio.MimeType,
                 ThumbFileId = audio.Thumbnail?.FileId,
                 Duration = audio.Duration,
@@ -172,16 +210,13 @@ namespace DomainLogic
             return file;
         }
 
-        public async Task<File?> CreateFile(Video? video, long telegramUserId)
+        FileMetadata? CreateFile(Video? video)
         {
-            var file = new File()
+            var file = new FileMetadata()
             {
-                Id = Guid.NewGuid(),
-                TelegramUserId = telegramUserId,
                 FileId = video.FileId,
+                FileUniqueId = video.FileUniqueId,
                 Size = video.FileSize.GetValueOrDefault(),
-                Name = video.FileName,
-                CreatedAt = DateTimeOffset.UtcNow,
                 MimeType = video.MimeType,
                 ThumbFileId = video.Thumbnail?.FileId,
                 Duration = video.Duration,
