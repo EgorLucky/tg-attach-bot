@@ -6,8 +6,10 @@
 </script>
 
 <template>
-    <Attachment 
-        :fileId="fileId" 
-        :mode="AttachmentMode.Edit"
-    />
+    <div className="card p-fluid">
+        <Attachment 
+            :fileId="fileId" 
+            :mode="AttachmentMode.Edit"
+        />
+    </div>
 </template>

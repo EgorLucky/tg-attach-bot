@@ -12,7 +12,7 @@ const fileService = new FileService();
 const files = ref(null);
 const searchTags = ref(null);
 const userId = userProfile.id;
-const source = ref('notTagged')
+const source = ref('tagged')
 
 const toast = useToast();
 
@@ -53,7 +53,7 @@ onMounted(async () => {
                     </template> -->
                 </Toolbar>
 
-                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center mb-4">
                     <h5>Manage attachments</h5>
                     <InputGroup>
                         <InputGroupAddon>
@@ -69,17 +69,25 @@ onMounted(async () => {
                         />
                     </InputGroup>
                 </div>
+                
                 <DataView
                     :value="files" 
                     layout="grid">
                     <template #grid="slotProps">
                         <div class="grid grid-cols-12 gap-4">
-                            <Attachment 
+                            <div
                                 v-for="(item, index) in slotProps.items"
-                                :fileId="item.id"
-                                :mode="AttachmentMode.Read"
-                                :file="item"
-                            />
+                                :key="index" 
+                                class="col-span-12 sm:col-span-6 lg:col-span-4"
+                            >
+                                <div class="p-3 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded">
+                                    <Attachment
+                                        :fileId="item.id"
+                                        :mode="AttachmentMode.Read"
+                                        :file="item"
+                                    />
+                                </div>
+                            </div>
                             <!-- <div 
                                 v-for="(item, index) in slotProps.items" 
                                 :key="index" 
