@@ -2,6 +2,7 @@
     import { ref, onMounted, computed } from "vue";
     import moment from "moment";
     import FileService from "../../service/FileService";
+    import localStorageService from '../../service/LocalSorageService';
     import { useToast } from 'primevue/usetoast';
     import { getFileUrl } from "../../service/FileUtils";
     import { AttachmentMode } from "./AttachmentMode";
@@ -10,8 +11,11 @@
     const props = defineProps({
         fileId: String,
         mode: AttachmentMode,
-        file: Object
+        file: Object,
+        editClickHandler: Function
     })
+
+    const userProfile = localStorageService.getUserInfo()
 
     const { fileId, mode } = props;
 
@@ -115,6 +119,17 @@
                     <Skeleton shape="circle" size="2rem" class="mr-2"></Skeleton>
                 </Button>
             </template>
+            <template v-else>
+                <Button
+                    v-if="file.telegramUserId === userProfile.id"
+                    class="flex-end" 
+                    icon="pi pi-pencil" 
+                    severity="secondary" 
+                    rounded 
+                    aria-label="Edit"
+                    @click="props.editClickHandler" 
+                />
+            </template>
         </div>
         <!--content-->
         <div class="field">
@@ -196,7 +211,16 @@
             </Button>
         </template>
         <template v-else>
-
+            <div class="pt-1">
+                <div class="flex flex-row justify-between items-start gap-2">
+                    <div>
+                        <div class="text-lg font-medium mt-1">{{ file.name }}</div>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            <Chip v-for="keyWord in file.keyWords" :key="keyWord" :label="keyWord" />
+                        </div>
+                    </div>
+                </div>
+            </div>
         </template>
     </template>
     <template v-else>

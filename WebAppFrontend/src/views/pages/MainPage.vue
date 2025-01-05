@@ -13,6 +13,8 @@ const files = ref(null);
 const searchTags = ref(null);
 const userId = userProfile.id;
 const source = ref('tagged')
+const editAttachmentModalVisible = ref(false);
+const fileToEditId = ref(null);
 
 const toast = useToast();
 
@@ -34,6 +36,12 @@ onMounted(async () => {
         });
     }
 });
+
+const handleEditClick = (file) => {
+    fileToEditId.value = file.id;
+    editAttachmentModalVisible.value = true;
+}
+
 </script>
 <template>
     <div class="grid">
@@ -85,6 +93,7 @@ onMounted(async () => {
                                         :fileId="item.id"
                                         :mode="AttachmentMode.Read"
                                         :file="item"
+                                        :editClickHandler="() => handleEditClick(item)"
                                     />
                                 </div>
                             </div>
@@ -142,4 +151,11 @@ onMounted(async () => {
         </div>
     </div>
     <Toast position="bottom-right" group="br" />
+    <Dialog v-if="editAttachmentModalVisible" v-model:visible="editAttachmentModalVisible" modal header="Edit attachment" :style="{ width: '25rem' }">
+        <div className="p-fluid">
+        <Attachment 
+            :fileId="fileToEditId" 
+            :mode="AttachmentMode.Edit"
+        /></div>
+    </Dialog>
 </template>
