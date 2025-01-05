@@ -82,7 +82,7 @@ const handleEditClick = (file) => {
                     :value="files" 
                     layout="grid">
                     <template #grid="slotProps">
-                        <div class="grid grid-cols-12 gap-4">
+                        <div class="grid grid-cols-12">
                             <div
                                 v-for="(item, index) in slotProps.items"
                                 :key="index" 
