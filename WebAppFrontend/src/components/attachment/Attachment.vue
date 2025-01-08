@@ -6,6 +6,7 @@
     import { useToast } from 'primevue/usetoast';
     import { getFileUrl } from "../../service/FileUtils";
     import { AttachmentMode } from "./AttachmentMode";
+    import KeyWordInput from "../keywordinput/KeyWordInput.vue";
     
     const toast = useToast();
     const props = defineProps({
@@ -190,12 +191,15 @@
             </div>
             <div class="field">
                 <label for="key-words">Key words</label>
-                <Chips 
+                <KeyWordInput
+                  v-model="file.keyWords"
+                />
+                <!-- <Chips 
                     id="key-words" 
                     v-model="file.keyWords" 
                     separator=" "
                     :allowDuplicate="false"
-                />
+                /> -->
             </div>
             <Button
                 v-if="!isSavingOrDeleting"

@@ -5,13 +5,14 @@ import { useToast } from 'primevue/usetoast';
 import localStorageService from '../../service/LocalSorageService';
 import Attachment from '../../components/attachment/Attachment.vue';
 import { AttachmentMode } from '../../components/attachment/AttachmentMode';
+import KeyWordInput from '../../components/keywordinput/KeyWordInput.vue'
 
 const toast = useToast();
 const userProfile = localStorageService.getUserInfo()
 
 const fileService = new FileService();
 const files = ref(null);
-const searchTags = ref(null);
+const searchTags = ref([]);
 const userId = userProfile.id;
 const editAttachmentModalVisible = ref(false);
 const fileToEditId = ref(null);
@@ -79,20 +80,11 @@ const handleEditClick = (file) => {
                             </template>
                         </Toolbar>-->
                         <h5>Manage attachments</h5>
-                        <div v-if="tab.tabId === 'tagged'" class="flex flex-column md:flex-row md:justify-content-between md:align-items-center mb-6">   
-                            <InputGroup>
-                                <InputGroupAddon>
-                                    <i class="pi pi-search"></i>
-                                </InputGroupAddon>
-                                <Chips 
-                                    id="key-words" 
-                                    class="w-full sm:w-auto" 
-                                    placeholder="Search..." 
-                                    v-model="searchTags" 
-                                    separator=" " 
-                                    :allowDuplicate="false" 
-                                />
-                            </InputGroup>
+                        <div v-if="tab.tabId === 'tagged'" class="flex flex-column md:flex-row md:justify-content-between md:align-items-center mb-6">
+                            <KeyWordInput 
+                                v-model="searchTags"
+                                placeholder="Search..."
+                            />
                         </div>
                         
                         <DataView
