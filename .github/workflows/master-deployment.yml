@@ -1,0 +1,38 @@
+name: Master deployment CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3    
+    - name: Login to DockerHub Registry
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }} ${{ secrets.DOCKER_REGISTRY_HOST }}
+      
+    - name: Build the Docker image
+      run: docker build -f Dockerfile.backend -t ${{ secrets.DOCKER_REGISTRY_HOST }}/tg-attach-bot:latest .
+      
+    - name: Push to DockerHub Registry
+      run: docker push ${{ secrets.DOCKER_REGISTRY_HOST }}/tg-attach-bot:latest
+
+    #- name: Install SSH Key
+    #  uses: shimataro/ssh-key-action@v2
+    #  with:
+    #    key: ${{ secrets.PRIVATE_SSH_KEY_K8S }} 
+    #    known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+    #
+    #- name: Restart Container
+    #  run: |
+    #      TEMP=$(mktemp)
+    #      echo "${{ secrets.PRIVATE_SSH_KEY_K8S }}" > $TEMP
+    #      ssh -o 'StrictHostKeyChecking no' -i $TEMP root@${{ secrets.HOSTING_SERVER_K8S }} exec 'bash -s' < deploy.sh
+
+
