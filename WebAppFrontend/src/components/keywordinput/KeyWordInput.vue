@@ -1,27 +1,48 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
+import InputText from 'primevue/inputtext'
 
 const props = defineProps<{
-  placeholder: string | null;
+  placeholder: string | undefined;
 }>();
 
 const model = defineModel<string[]>({ required: true });
 
-const keyWords = computed(() => model.value);
+const keyWords = computed(() => model.value ?? []);
 
 const { placeholder } = props;
 const inputText = ref<string>();
 
-const keyWordSeparators = [',', '.', ':', ';', ' ', 'Enter'];
-const handleKeyWordFilterInputKeyDown = (event: KeyboardEvent) => {
-  const separatorIndex = keyWordSeparators.indexOf(event.key);
-  if (separatorIndex === -1) {
-    return;
+const keyWordSeparators = [',', '.', '…', ':', ';', ' '];
+
+ const handleKeyWordFilterInputKeyUp = (event: KeyboardEvent) => {
+  if (event.code !== 'Enter' && event.key !== 'Enter')
+    return
+
+   if (inputText.value 
+      && !keyWords.value.includes(inputText.value) 
+      && inputText.value.length > 2) {
+    keyWords.value.push(inputText.value);
+    model.value = keyWords.value; 
   }
+
+  nextTick(() => inputText.value = '')
+ };
+
+const handleInputTextModelUpdated = (value: string|undefined) => {
+  if (!value)
+    return
+  
+  const data = value
+  const separators = keyWordSeparators.filter(separator => data?.includes(separator))
+
+  if (!separators.length)
+    return
   if (inputText.value) {
     const processedInputText = inputText.value.trim()
       .replaceAll(',', '')
       .replaceAll('.', '')
+      .replaceAll('…', '')
       .replaceAll(':', '')
       .replaceAll(';', '')
       .replaceAll('\n', '')
@@ -33,16 +54,8 @@ const handleKeyWordFilterInputKeyDown = (event: KeyboardEvent) => {
       model.value = keyWords.value;
     }
   }
-  inputText.value = '';
-};
 
-const handleKeyWordFilterInputKeyUp = (event: KeyboardEvent) => {
-  const separatorIndex = keyWordSeparators.indexOf(event.key);
-  if (separatorIndex === -1) {
-    return;
-  }
-
-  inputText.value = '';
+  nextTick(() => inputText.value = '')
 };
 
 const handleChipRemove = (index: number) => {
@@ -80,11 +93,11 @@ const onChipDrop = (evt: DragEvent, indexToDrop: number) => {
 </script>
 
 <template>
-  <InputText 
+  <InputText
     v-model="inputText" 
-    type="text" 
-    @keydown="handleKeyWordFilterInputKeyDown" 
-    @keyup="handleKeyWordFilterInputKeyUp" 
+    type="text"
+    @keypress.enter="handleKeyWordFilterInputKeyUp"
+    @update:model-value="handleInputTextModelUpdated"
     :placeholder="placeholder" 
   />
   <div class="flex flex-wrap gap-1 mt-2">
