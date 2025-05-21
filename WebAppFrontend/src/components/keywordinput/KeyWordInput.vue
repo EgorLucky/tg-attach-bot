@@ -13,21 +13,25 @@ const keyWords = computed(() => model.value ?? []);
 const { placeholder } = props;
 const inputText = ref<string>();
 
-const keyWordSeparators = [',', '.', '…', ':', ';', ' '];
+const keyWordSeparators = [',', '.', '…', ':', ';', ' ', '\r', '\n'];
 
- const handleKeyWordFilterInputKeyUp = (event: KeyboardEvent) => {
+const moveKeyWordFromInput = (keyWordString: string) => {
+  if (keyWordString 
+    && !keyWords.value.includes(keyWordString) 
+    && keyWordString.length > 2) {
+    keyWords.value.push(keyWordString);
+    model.value = keyWords.value;
+  }
+}
+
+const handleKeyWordFilterInputKeyUp = (event: KeyboardEvent) => {
   if (event.code !== 'Enter' && event.key !== 'Enter')
     return
 
-   if (inputText.value 
-      && !keyWords.value.includes(inputText.value) 
-      && inputText.value.length > 2) {
-    keyWords.value.push(inputText.value);
-    model.value = keyWords.value; 
-  }
+  moveKeyWordFromInput(inputText.value!)
 
   nextTick(() => inputText.value = '')
- };
+};
 
 const handleInputTextModelUpdated = (value: string|undefined) => {
   if (!value)
@@ -39,24 +43,16 @@ const handleInputTextModelUpdated = (value: string|undefined) => {
   if (!separators.length)
     return
   if (inputText.value) {
-    const processedInputText = inputText.value.trim()
-      .replaceAll(',', '')
-      .replaceAll('.', '')
-      .replaceAll('…', '')
-      .replaceAll(':', '')
-      .replaceAll(';', '')
-      .replaceAll('\n', '')
-      .replaceAll('\r', '');
-    if (processedInputText 
-      && !keyWords.value.includes(processedInputText) 
-      && processedInputText.length > 2) {
-      keyWords.value.push(processedInputText);
-      model.value = keyWords.value;
-    }
+    const processedInputText = separators
+      .reduce((prev, curr) => prev.replaceAll(curr, ''), 
+        inputText.value.trim())
+
+    moveKeyWordFromInput(processedInputText)
   }
 
   nextTick(() => inputText.value = '')
 };
+
 
 const handleChipRemove = (index: number) => {
   const filteredWords = keyWords.value.filter((s, i) => i !== index);
