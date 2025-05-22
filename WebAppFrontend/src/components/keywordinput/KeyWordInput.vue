@@ -15,6 +15,8 @@ const inputText = ref<string>();
 
 const keyWordSeparators = [',', '.', '…', ':', ';', ' ', '\r', '\n'];
 
+const draggedIndexRef = ref<number|null>()
+
 const moveKeyWordFromInput = (keyWordString: string) => {
   if (keyWordString 
     && !keyWords.value.includes(keyWordString) 
@@ -60,17 +62,12 @@ const handleChipRemove = (index: number) => {
 };
 
 const chipDragStart = (evt: DragEvent, index: number) => {
-  const dataTransfer = evt.dataTransfer;
-  if (!dataTransfer) return;
-  dataTransfer.dropEffect = 'move';
-  dataTransfer.effectAllowed = 'move';
-  dataTransfer.setData('index', index.toString());
+  draggedIndexRef.value = index
 };
 
 const onChipDrop = (evt: DragEvent, indexToDrop: number) => {
-  const dataTransfer = evt.dataTransfer;
-  if (!dataTransfer) return;
-  const draggedIndex = parseInt(dataTransfer.getData('index'));
+  const draggedIndex = draggedIndexRef.value!
+  draggedIndexRef.value = null;
 
   if (draggedIndex === indexToDrop) return;
 
