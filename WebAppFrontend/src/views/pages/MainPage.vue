@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 import FileService from '../../service/FileService';
 import { useToast } from 'primevue/usetoast';
 import localStorageService from '../../service/LocalSorageService';
@@ -27,15 +27,20 @@ const tabs = ref([
     }
 ])
 const selectedTabIndex = ref(0);
+const loading = ref(false)
 
 const getFileList = async () => {
     try {
-        files.value = await fileService.list({
+        loading.value = true
+        const loadedFiles = await fileService.list({
             userId: userId,
             keyWords: searchTags.value,
             take: 100,
             source: tabs.value[selectedTabIndex.value].tabId
         });
+        files.value = null;
+        await nextTick(); 
+        files.value = loadedFiles;
     } catch (error) {
         console.log(error);
         toast.add({ 
@@ -45,6 +50,7 @@ const getFileList = async () => {
             group: 'br' 
         });
     }
+    loading.value = false;
 }
 
 watch(selectedTabIndex, async (newIndex, oldIndex) => {
@@ -84,6 +90,14 @@ const handleEditClick = (file) => {
                             <KeyWordInput 
                                 v-model="searchTags"
                                 placeholder="Search..."
+                            />
+                            <Button 
+                                type="button" 
+                                label="Search" 
+                                icon="pi pi-search" 
+                                iconPos="right" 
+                                :loading="loading" 
+                                @click="getFileList" 
                             />
                         </div>
                         
