@@ -1,7 +1,9 @@
 const getFileUrl = (file) => {
-    return import.meta.env.VITE_BACKEND_API_URL + '/file/download/' 
-            + encodeURIComponent(file.fileId) + '?isImage=' 
-            + (file.fileType === 'Animation' || file.fileType === 'Image')
-}
+  return import.meta.env.VITE_BACKEND_API_URL
+    + '/file/download/'
+    + encodeURIComponent(file.fileId)
+    + '?isImage='
+    + (file.fileType === 'Animation' || file.fileType === 'Image');
+};
 
 export { getFileUrl };

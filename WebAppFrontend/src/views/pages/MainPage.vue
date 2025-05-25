@@ -5,10 +5,10 @@ import { useToast } from 'primevue/usetoast';
 import localStorageService from '../../service/LocalSorageService';
 import Attachment from '../../components/attachment/Attachment.vue';
 import { AttachmentMode } from '../../components/attachment/AttachmentMode';
-import KeyWordInput from '../../components/keywordinput/KeyWordInput.vue'
+import KeyWordInput from '../../components/keywordinput/KeyWordInput.vue';
 
 const toast = useToast();
-const userProfile = localStorageService.getUserInfo()
+const userProfile = localStorageService.getUserInfo();
 
 const fileService = new FileService();
 const files = ref(null);
@@ -17,62 +17,67 @@ const userId = userProfile.id;
 const editAttachmentModalVisible = ref(false);
 const fileToEditId = ref(null);
 const tabs = ref([
-    {
-        tabId: "tagged",
-        title: "Tagged"
-    },
-    {
-        tabId: "notTagged",
-        title: "Not tagged"
-    }
-])
+  {
+    tabId: 'tagged',
+    title: 'Tagged'
+  },
+  {
+    tabId: 'notTagged',
+    title: 'Not tagged'
+  }
+]);
 const selectedTabIndex = ref(0);
-const loading = ref(false)
+const loading = ref(false);
 
 const getFileList = async () => {
-    try {
-        loading.value = true
-        const loadedFiles = await fileService.list({
-            userId: userId,
-            keyWords: searchTags.value,
-            take: 100,
-            source: tabs.value[selectedTabIndex.value].tabId
-        });
-        files.value = null;
-        await nextTick(); 
-        files.value = loadedFiles;
-    } catch (error) {
-        console.log(error);
-        toast.add({ 
-            severity: 'error', 
-            summary: 'Error getting file list!', 
-            detail: error.message, 
-            group: 'br' 
-        });
-    }
-    loading.value = false;
-}
+  try {
+    loading.value = true;
+    const loadedFiles = await fileService.list({
+      userId: userId,
+      keyWords: searchTags.value,
+      take: 100,
+      source: tabs.value[selectedTabIndex.value].tabId
+    });
+    files.value = null;
+    await nextTick();
+    files.value = loadedFiles;
+  } catch (error) {
+    console.log(error);
+    toast.add({
+      severity: 'error',
+      summary: 'Error getting file list!',
+      detail: error.message,
+      group: 'br'
+    });
+  }
+  loading.value = false;
+};
 
 watch(selectedTabIndex, async (newIndex, oldIndex) => {
-    files.value = [];
-    await getFileList()
-})
+  files.value = [];
+  await getFileList();
+});
 
 onMounted(async () => await getFileList());
 
 const handleEditClick = (file) => {
-    fileToEditId.value = file.id;
-    editAttachmentModalVisible.value = true;
-}
-
+  fileToEditId.value = file.id;
+  editAttachmentModalVisible.value = true;
+};
 </script>
 <template>
-    <div class="grid">
-        <div class="col-12">
-            <div class="card">
-                <TabView v-model:activeIndex="selectedTabIndex">
-                    <TabPanel v-for="tab in tabs" :key="tab.tabId" :header="tab.title">
-                        <!--<Toolbar v-if="tab.tabId === 'tagged'" class="mb-4">
+  <div class="grid">
+    <div class="col-12">
+      <div class="card">
+        <TabView 
+					v-model:activeIndex="selectedTabIndex"
+				>
+          <TabPanel 
+						v-for="tab in tabs" 
+						:key="tab.tabId" 
+						:header="tab.title"
+					>
+            <!--<Toolbar v-if="tab.tabId === 'tagged'" class="mb-4">
                              <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="mr-2" severity="success" @click="" />
@@ -85,42 +90,45 @@ const handleEditClick = (file) => {
                                 <Button label="Export" icon="pi pi-upload" severity="help" @click="exportCSV($event)" />
                             </template>
                         </Toolbar>-->
-                        <h5>Manage attachments</h5>
-                        <div v-if="tab.tabId === 'tagged'" class="flex flex-column md:flex-row md:justify-content-between md:align-items-center mb-6">
-                            <KeyWordInput 
-                                v-model="searchTags"
-                                placeholder="Search..."
-                            />
-                            <Button 
-                                type="button" 
-                                label="Search" 
-                                icon="pi pi-search" 
-                                iconPos="right" 
-                                :loading="loading" 
-                                @click="getFileList" 
-                            />
-                        </div>
-                        
-                        <DataView
-                            :value="files" 
-                            layout="grid">
-                            <template #grid="slotProps">
-                                <div class="grid grid-cols-12 gap-4">
-                                    <div
-                                        v-for="(item, index) in slotProps.items"
-                                        :key="index" 
-                                        class="col-span-12 sm:col-span-6 lg:col-span-4"
-                                    >
-                                        <div class="border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded">
-                                            <Attachment
-                                                :fileId="item.id"
-                                                :mode="AttachmentMode.Read"
-                                                :file="item"
-                                                :editClickHandler="() => handleEditClick(item)"
-                                            />
-                                        </div>
-                                    </div>
-                                    <!-- <div 
+            <h5>Manage attachments</h5>
+            <div 
+							v-if="tab.tabId === 'tagged'" 
+							class="flex flex-column md:flex-row md:justify-content-between md:align-items-center mb-6"
+						>
+              <KeyWordInput 
+								v-model="searchTags" 
+								placeholder="Search..." 
+							/>
+              <Button 
+								type="button" 
+								label="Search" 
+								icon="pi pi-search" 
+								iconPos="right" 
+								:loading="loading" 
+								@click="getFileList" 
+							/>
+            </div>
+
+            <DataView 
+							:value="files" 
+							layout="grid"
+						>
+              <template #grid="slotProps">
+                <div class="grid grid-cols-12 gap-4">
+                  <div 
+										v-for="(item, index) in slotProps.items" 
+											:key="index" 
+											class="col-span-12 sm:col-span-6 lg:col-span-4"
+									>
+                    <div class="border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded">
+                      <Attachment 
+												:fileId="item.id" 
+												:mode="AttachmentMode.Read" 
+												:file="item" :editClickHandler="() => handleEditClick(item)" 
+											/>
+                    </div>
+                  </div>
+                  <!-- <div 
                                         v-for="(item, index) in slotProps.items" 
                                         :key="index" 
                                         class="col-span-12 sm:col-span-6 lg:col-span-4 p-2"
@@ -167,20 +175,27 @@ const handleEditClick = (file) => {
                                             </div>
                                         </div>
                                     </div> -->
-                                </div>
-                            </template>
-                        </DataView>
-                    </TabPanel>
-                </TabView>
-            </div>
-        </div>
+                </div>
+              </template>
+            </DataView>
+          </TabPanel>
+        </TabView>
+      </div>
     </div>
-    <Toast position="bottom-right" group="br" />
-    <Dialog v-if="editAttachmentModalVisible" v-model:visible="editAttachmentModalVisible" modal header="Edit attachment" :style="{ width: '25rem' }">
-        <div className="p-fluid">
-        <Attachment 
-            :fileId="fileToEditId" 
-            :mode="AttachmentMode.Edit"
-        /></div>
-    </Dialog>
+  </div>
+  <Toast position="bottom-right" group="br" />
+  <Dialog 
+		v-if="editAttachmentModalVisible" 
+		v-model:visible="editAttachmentModalVisible" 
+		modal 
+		header="Edit attachment" 
+		:style="{ width: '25rem' }"
+	>
+    <div className="p-fluid">
+      <Attachment 
+				:fileId="fileToEditId" 
+				:mode="AttachmentMode.Edit"	
+			/>
+    </div>
+  </Dialog>
 </template>
