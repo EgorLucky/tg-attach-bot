@@ -135,7 +135,7 @@
         <!--content-->
         <div class="field">
             <div class="flex justify-content-center">
-                <template v-if="file.fileType === 'Image' || file.fileType === 'Animation'">
+                <template v-if="file.fileType === 'Image'">
                     <Image
                         :hidden="!imageLoaded"
                         :src="fileUrl" 
@@ -144,6 +144,16 @@
                         preview
                         @load="loaded"
                     />
+                </template>
+                <template v-if="file.fileType === 'Animation' && file.mimeType === 'video/mp4'">
+                    <video
+                        :hidden="!imageLoaded"
+                        :src="fileUrl"
+                        width="300px"
+                        autoplay loop
+                        @canplay="loaded"
+                    >
+                    </video>
                 </template>
                 <template v-if="file.fileType === 'Video'">
                     <video
