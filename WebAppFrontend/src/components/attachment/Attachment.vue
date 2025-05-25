@@ -204,12 +204,6 @@
                 <KeyWordInput
                   v-model="file.keyWords"
                 />
-                <!-- <Chips 
-                    id="key-words" 
-                    v-model="file.keyWords" 
-                    separator=" "
-                    :allowDuplicate="false"
-                /> -->
             </div>
             <Button
                 v-if="!isSavingOrDeleting"
