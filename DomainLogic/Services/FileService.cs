@@ -91,7 +91,13 @@ public class FileService
         query = query.OrderByDescending(f => f.CreatedAt);
 
         if (parameters.Offset is not null)
+        {
             query = query.Where(f => f.CreatedAt <= parameters.Offset);
+            
+            if (parameters.OffsetExcludedFileIds is not null)
+                query = query.Where(f => !parameters.OffsetExcludedFileIds.Contains(f.Id));
+        }
+
         query = query.Take(parameters.Take);
 
         var results = await query

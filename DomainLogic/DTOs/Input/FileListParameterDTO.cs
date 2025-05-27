@@ -10,6 +10,8 @@ public record FileListParameterDTO
     
     public DateTimeOffset? Offset { get; init; }
     
+    public SortedSet<Guid>? OffsetExcludedFileIds { get; init; }
+    
     public FileListSources Source { get; init; }
 }
 
