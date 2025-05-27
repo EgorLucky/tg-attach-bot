@@ -17,4 +17,5 @@ public record File
     public string? MimeType { get; init; }
     public FileType FileType { get; init; }
     public string[]? KeyWords { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }

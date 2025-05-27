@@ -115,6 +115,7 @@ public class FileService
         Duration = model.Content.Duration,
         MimeType = model.Content.MimeType,
         FileType = model.Content.FileType,
+        CreatedAt = model.CreatedAt,
     };
 
     static Func<UserFile, File>? _mapEntityModelToDtoCompiled;
