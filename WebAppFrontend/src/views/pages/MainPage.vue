@@ -1,17 +1,18 @@
 <script setup>
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import FileService from '../../service/FileService';
 import { useToast } from 'primevue/usetoast';
 import localStorageService from '../../service/LocalSorageService';
 import Attachment from '../../components/attachment/Attachment.vue';
 import { AttachmentMode } from '../../components/attachment/AttachmentMode';
 import KeyWordInput from '../../components/keywordinput/KeyWordInput.vue';
+import ProgressSpinner from 'primevue/progressspinner';
 
 const toast = useToast();
 const userProfile = localStorageService.getUserInfo();
 
 const fileService = new FileService();
-const files = ref(null);
+const files = ref([]);
 const searchTags = ref([]);
 const userId = userProfile.id;
 const editAttachmentModalVisible = ref(false);
@@ -32,15 +33,27 @@ const loading = ref(false);
 const getFileList = async () => {
   try {
     loading.value = true;
+
+    const offset = files.value.at(files.value.length - 1)?.createdAt
+    const excludedFileIds = offset
+      ? files.value.filter(f => f.createdAt === offset).map(f => f.id)
+      : null
+
     const loadedFiles = await fileService.list({
       userId: userId,
       keyWords: searchTags.value,
       take: 100,
-      source: tabs.value[selectedTabIndex.value].tabId
+      source: tabs.value[selectedTabIndex.value].tabId,
+      offset: offset,
+      offsetExcludedFileIds: excludedFileIds
     });
-    files.value = null;
-    await nextTick();
-    files.value = loadedFiles;
+    
+    if (loadedFiles.length) {
+      const oldFiles = files.value
+      oldFiles.push(...loadedFiles)
+      await nextTick();
+      files.value = oldFiles;
+    }
   } catch (error) {
     console.log(error);
     toast.add({
@@ -64,6 +77,23 @@ const handleEditClick = (file) => {
   fileToEditId.value = file.id;
   editAttachmentModalVisible.value = true;
 };
+
+const handleSearchClick = () => {
+  files.value = []
+  getFileList()
+}
+
+const handleScroll = (e) => {
+  const {scrollTop, scrollHeight, offsetHeight} = e.target;
+
+  if(scrollTop + offsetHeight < scrollHeight - 10) {
+    return;
+  }
+
+  if (!loading.value) {
+    getFileList()
+  }
+}
 </script>
 <template>
   <div class="grid">
@@ -105,30 +135,36 @@ const handleEditClick = (file) => {
 								icon="pi pi-search" 
 								iconPos="right" 
 								:loading="loading" 
-								@click="getFileList" 
+								@click="handleSearchClick" 
 							/>
             </div>
-
-            <DataView 
-							:value="files" 
-							layout="grid"
-						>
-              <template #grid="slotProps">
-                <div class="grid grid-cols-12 gap-4">
-                  <div 
-										v-for="(item, index) in slotProps.items" 
-											:key="index" 
-											class="col-span-12 sm:col-span-6 lg:col-span-4"
-									>
-                    <div class="border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded">
-                      <Attachment 
-												:fileId="item.id" 
-												:mode="AttachmentMode.Read" 
-												:file="item" :editClickHandler="() => handleEditClick(item)" 
-											/>
-                    </div>
-                  </div>
-                  <!-- <div 
+            <div 
+              class="h-30rem grid grid-cols-12 gap-4 overflow-y-auto"
+              style="width:122%"
+              @scroll="handleScroll"
+            >
+              <div 
+                v-for="(item, index) in files" 
+                :key="index" 
+                class="col-span-12 sm:col-span-6 lg:col-span-4"
+              >
+                <div class="border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded">
+                  <Attachment 
+                    :fileId="item.id" 
+                    :mode="AttachmentMode.Read" 
+                    :file="item" :editClickHandler="() => handleEditClick(item)" 
+                  />
+                </div>
+              </div>
+              <ProgressSpinner
+                v-if="loading"
+                style="width: 50px; height: 50px" 
+                strokeWidth="8" 
+                fill="var(--surface-ground)"
+                animationDuration=".5s" 
+                aria-label="Custom ProgressSpinner" 
+              />
+                <!-- <div 
                                         v-for="(item, index) in slotProps.items" 
                                         :key="index" 
                                         class="col-span-12 sm:col-span-6 lg:col-span-4 p-2"
@@ -175,9 +211,7 @@ const handleEditClick = (file) => {
                                             </div>
                                         </div>
                                     </div> -->
-                </div>
-              </template>
-            </DataView>
+						</div>
           </TabPanel>
         </TabView>
       </div>
