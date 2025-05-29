@@ -16,6 +16,7 @@ public record File
     public int? Duration { get; init; }
     public string? MimeType { get; init; }
     public FileType FileType { get; init; }
-    public string[]? KeyWords { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
+    public string[]? KeyWords { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset? LastUpdatedAt { get; init; }
 }

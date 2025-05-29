@@ -108,7 +108,7 @@ public class FileService
         return new FileListResultDTO { Success = true, Result = results };
     }
 
-    static Expression<Func<UserFile, File>> MapEntityModelToDto = (UserFile model) => new File
+    static Expression<Func<UserFile, File>> MapEntityModelToDto = (model) => new File
     {
         Id = model.Id,
         Name = model.Name,
@@ -122,6 +122,7 @@ public class FileService
         MimeType = model.Content.MimeType,
         FileType = model.Content.FileType,
         CreatedAt = model.CreatedAt,
+        LastUpdatedAt = model.LastUpdatedAt
     };
 
     static Func<UserFile, File>? _mapEntityModelToDtoCompiled;
