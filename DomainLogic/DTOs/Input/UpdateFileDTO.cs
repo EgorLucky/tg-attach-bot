@@ -11,5 +11,5 @@ public record UpdateFileDTO
     public string Name { get; init; }
     
     [Required]
-    public SortedSet<string> KeyWords { get; init; }
+    public HashSet<string> KeyWords { get; init; }
 }
