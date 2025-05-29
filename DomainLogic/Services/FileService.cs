@@ -77,7 +77,7 @@ public class FileService
         var query = _dbContext.UserFiles.AsQueryable();
 
         if (parameters.UserId is not null)
-            query = query.Where(f => f.TelegramUserId == userId);
+            query = query.Where(f => f.TelegramUserId == userId && f.DeletedAt == null);
 
         if (parameters.Source == FileListSources.Tagged)
         {
