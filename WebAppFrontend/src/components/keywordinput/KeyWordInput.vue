@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue';
 import InputText from 'primevue/inputtext'
+import { Validation, ValidationArgs } from '@vuelidate/core';
+import { invalid } from 'moment';
 
 const props = defineProps<{
   placeholder: string | undefined;
+  validation: Validation<ValidationArgs<{ keyWordsAreValid: (val: []) => boolean }>, []> | null
 }>();
 
 const model = defineModel<string[]>({ required: true });
 
 const keyWords = computed(() => model.value ?? []);
 
-const { placeholder } = props;
+const { placeholder, validation } = props;
 const inputText = ref<string>();
 
 const keyWordSeparators = [',', '.', '…', ':', ';', ' ', '\r', '\n'];
@@ -21,7 +24,7 @@ const moveKeyWordFromInput = (keyWordString: string) => {
   if (keyWordString 
     && !keyWords.value.includes(keyWordString) 
     && keyWordString.length > 2) {
-    keyWords.value.push(keyWordString);
+    keyWords.value.push(keyWordString.toLowerCase());
     model.value = keyWords.value;
   }
 }
@@ -91,8 +94,10 @@ const onChipDrop = (evt: DragEvent, indexToDrop: number) => {
     type="text"
     @keypress.enter="handleKeyWordFilterInputKeyUp"
     @update:model-value="handleInputTextModelUpdated"
-    :placeholder="placeholder" 
+    :placeholder="placeholder"
+    :invalid="validation?.$invalid"
   />
+  <div v-if="validation && validation.$invalid" style="color:red">Key words must be filled</div>
   <div class="flex flex-wrap gap-1 mt-2">
     <Chip
       v-for="(keyWord, index) in keyWords"

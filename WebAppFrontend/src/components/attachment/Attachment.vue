@@ -1,5 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useVuelidate } from '@vuelidate/core'
+import { required } from '@vuelidate/validators'
 import moment from 'moment';
 import FileService from '../../service/FileService';
 import localStorageService from '../../service/LocalSorageService';
@@ -25,6 +27,20 @@ const { fileId, mode } = props;
 const file = ref(null);
 
 if (mode === AttachmentMode.Read) file.value = props.file;
+
+const keyWordsAreValid = mode === AttachmentMode.Edit
+  ? (value) => value?.length && value.every(v => v?.length > 2) 
+    && value.filter((item, index) => value.indexOf(item) !== index)
+  : null
+
+const rules = mode === AttachmentMode.Edit
+? {
+  name: { required },
+  keyWords: { keyWordsAreValid }
+}
+: null
+
+const v$ = mode === AttachmentMode.Edit? useVuelidate(rules, file): null
 
 const fileService = new FileService();
 
@@ -193,16 +209,23 @@ const deleteAttachment = async () => {
         <InputText 
 					v-model="file.name" 
 					id="name" 
-					type="text" 
+					type="text"
+          @blur="v$.name.$touch"
+          :invalid="v$.name.$invalid"
 				/>
+        <div v-if="v$.name.$error" style="color:red">Name field is required</div>
       </div>
       <div class="field">
         <label for="key-words">Key words</label>
-        <KeyWordInput v-model="file.keyWords" />
+        <KeyWordInput 
+          v-model="file.keyWords"
+          :validation="v$.keyWords"
+        />
       </div>
       <Button v-if="!isSavingOrDeleting" 
 				label="Save" 
-				class="mt-2" 
+				class="mt-2"
+        :disabled="v$.$invalid"
 				@click="handleSaveClick" />
       <Button v-else class="mt-2">
         <Skeleton
