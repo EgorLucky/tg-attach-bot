@@ -69,7 +69,7 @@ public class FileService
 
         await _dbContext.SaveChangesAsync();
 
-        return new GetFileByIdResultDTO() { Success = true, Result = MapEntityModelToDtoFunc(file) };
+        return new GetFileByIdResultDTO() { Success = true, Result = new () { Id = id } };
     }
 
     public async Task<FileListResultDTO> GetList(FileListParameterDTO parameters, long userId)
