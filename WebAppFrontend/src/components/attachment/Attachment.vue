@@ -16,6 +16,8 @@ const props = defineProps({
   editClickHandler: Function
 });
 
+const emit = defineEmits(['updated', 'deleted'])
+
 const userProfile = localStorageService.getUserInfo();
 
 const { fileId, mode } = props;
@@ -65,6 +67,8 @@ const handleSaveClick = async () => {
     });
 
     toast.add({ severity: 'success', message: 'Success!', detail: 'Your data was saved!', life: 3000, group: 'br' });
+
+    emit("updated", updateResult)
   } catch (error) {
     console.log(error);
     toast.add({ severity: 'error', summary: 'Error!', detail: 'Something went wrong :( ' + error.message, life: 3000, group: 'br' });
@@ -81,6 +85,7 @@ const deleteAttachment = async () => {
   try {
     const deleteResult = await fileService.delete(file.value.id);
     toast.add({ severity: 'info', summary: 'Success!', detail: 'Your data was deleted!', life: 3000, group: 'br' });
+    emit("deleted", deleteResult)
   } catch (error) {
     console.log(error);
     toast.add({ severity: 'error', summary: 'Error!', detail: 'Something went wrong :( ' + error.message, life: 3000, group: 'br' });

@@ -99,6 +99,25 @@ const handleScroll = (e) => {
     getFileList()
   }
 }
+
+const handleFileUpdated = (file) => {
+  const fileIndex = files.value.findIndex(f => f.id === file.id)
+  const fileList = files.value
+  if (selectedTabIndex.value === 0) {
+    fileList[fileIndex] = file
+  } else if (selectedTabIndex.value === 1) {
+    fileList.splice(fileIndex, 1)
+  }
+  files.value = [...fileList]
+}
+
+const handleFileDeleted = (file) => {
+  const fileIndex = files.value.findIndex(f => f.id === file.id)
+  const fileList = files.value
+  fileList.splice(fileIndex, 1)
+  files.value = [...fileList]
+}
+
 </script>
 <template>
   <div class="grid">
@@ -149,15 +168,16 @@ const handleScroll = (e) => {
               @scroll="handleScroll"
             >
               <div 
-                v-for="(item, index) in files" 
-                :key="index" 
+                v-for="(item) in files" 
+                :key="item.id + ' ' + (item.lastUpdatedAt ?? '')" 
                 class="col-span-12 sm:col-span-6 lg:col-span-4"
               >
                 <div class="border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded">
                   <Attachment 
                     :fileId="item.id" 
                     :mode="AttachmentMode.Read" 
-                    :file="item" :editClickHandler="() => handleEditClick(item)" 
+                    :file="item" 
+                    :editClickHandler="() => handleEditClick(item)"
                   />
                 </div>
               </div>
@@ -233,7 +253,9 @@ const handleScroll = (e) => {
     <div className="p-fluid">
       <Attachment 
 				:fileId="fileToEditId" 
-				:mode="AttachmentMode.Edit"	
+				:mode="AttachmentMode.Edit"
+        @updated="handleFileUpdated"
+        @deleted="handleFileDeleted"
 			/>
     </div>
   </Dialog>
