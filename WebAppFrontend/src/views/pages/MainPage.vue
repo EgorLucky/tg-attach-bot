@@ -29,6 +29,7 @@ const tabs = ref([
 ]);
 const selectedTabIndex = ref(0);
 const loading = ref(false);
+const endOfListLoaded = ref(false)
 
 const getFileList = async () => {
   try {
@@ -53,6 +54,8 @@ const getFileList = async () => {
       oldFiles.push(...loadedFiles)
       await nextTick();
       files.value = oldFiles;
+    } else {
+      endOfListLoaded.value = true;
     }
   } catch (error) {
     console.log(error);
@@ -68,6 +71,7 @@ const getFileList = async () => {
 
 watch(selectedTabIndex, async (newIndex, oldIndex) => {
   files.value = [];
+  endOfListLoaded.value = false
   await getFileList();
 });
 
@@ -80,6 +84,7 @@ const handleEditClick = (file) => {
 
 const handleSearchClick = () => {
   files.value = []
+  endOfListLoaded.value = false
   getFileList()
 }
 
@@ -157,7 +162,7 @@ const handleScroll = (e) => {
                 </div>
               </div>
               <ProgressSpinner
-                v-if="loading"
+                v-if="loading && !endOfListLoaded"
                 style="width: 50px; height: 50px" 
                 strokeWidth="8" 
                 fill="var(--surface-ground)"
